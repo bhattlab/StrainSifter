@@ -1,13 +1,6 @@
 import os
 
-# extra credit:
-## bwa index rule
-
-# To do:
-## rule to rename trees based on labels
-## fix calc_coverage filename input
-
-# read list of stool samples
+# read list of samples
 organism_to_samples = {}
 samples_to_organism = {}
 with open('samples_with_enough_cvg.list') as samples_list:
@@ -23,11 +16,11 @@ with open('samples_with_enough_cvg.list') as samples_list:
 			organism_to_samples[organism] = [sample]
 
 rule bwa_index:
-	input: "/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta"
+	input: "ref/{assembly}.fasta"
 	output:
-		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.amb",
-		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.ann",
-		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.bwt",
+		"ref/{assembly}.fasta.amb",
+		"ref/{assembly}.fasta.ann",
+		"ref/{assembly}.fasta.bwt",
 		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.pac",
 		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.sa"
 	shell:
