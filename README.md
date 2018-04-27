@@ -1,6 +1,5 @@
 # StrainSifter
 
-#hi
 A straightforward bioinformatic pipeline for detecting the presence of a bacterial strain in one or more metagenome(s)
 
 ## Dependencies
