@@ -21,17 +21,17 @@ rule bwa_index:
 		"ref/{assembly}.fasta.amb",
 		"ref/{assembly}.fasta.ann",
 		"ref/{assembly}.fasta.bwt",
-		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.pac",
-		"/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta.sa"
+		"ref/{assembly}.fasta.pac",
+		"ref/{assembly}.fasta.sa"
 	shell:
 		"bwa index {input}"
 
 rule bwa_align_stool:
 	input:
-		ref = "/home/tamburin/fiona/bacteremia/14.assemble_trimmed/filtered_assemblies/{assembly}.fasta",
+		ref = "ref/{assembly}.fasta",
 		ref_index = rules.bwa_index.output,
-		r1 = "/home/tamburin/fiona/bacteremia/stool_reads_all/{sample}_PE1.fq",
-		r2 = "/home/tamburin/fiona/bacteremia/stool_reads_all/{sample}_PE2.fq"
+		r1 = "input_reads/{sample}_PE1.fq",
+		r2 = "input_reads/{sample}_PE2.fq"
 	output:
 		"filtered_bam/{sample}.{assembly}.filtered.bam"
 	resources:
