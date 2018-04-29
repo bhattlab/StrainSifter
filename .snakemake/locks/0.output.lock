@@ -1,0 +1,7 @@
+core_snps/all.tsv
+consensus/B09.txt
+snp_calls/B09.tsv
+pileup/B09.pileup
+passed_samples/B09.bam
+coverage/B09.cvg
+filtered_bam/B09.filtered.bam

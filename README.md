@@ -1,6 +1,16 @@
 # StrainSifter
 
-A straightforward bioinformatic pipeline for detecting the presence of a bacterial strain in one or more metagenome(s)
+A straightforward bioinformatic pipeline for detecting the presence of a bacterial strain in one or more metagenome(s).
+
+Can output phylogenetic trees showing strain relatedness of input strains, as well as pairwise counts of single-nucleotide variants (SNVs) between input samples.
+
+## Usage
+
+### Phylogeny
+snakemake tree_plot/strain.tree.pdf
+
+### SNV counts
+snakemake snv_distances/strain.snps.tsv
 
 ## Dependencies
 

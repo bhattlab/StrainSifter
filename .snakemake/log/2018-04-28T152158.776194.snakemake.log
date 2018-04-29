@@ -1,0 +1,31 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cluster nodes: 99
+Unlimited resources: time, mem
+Job counts:
+	count	jobs
+	2	pileup
+	2
+
+rule pileup:
+    input: passed_samples/S100.bam, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.fai
+    output: pileup/S100.pileup
+    jobid: 0
+    wildcards: sample=S100
+    resources: mem=32, time=1
+
+Submitted job 0 with external jobid '1193847'.
+
+rule pileup:
+    input: passed_samples/S82.bam, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.fai
+    output: pileup/S82.pileup
+    jobid: 1
+    wildcards: sample=S82
+    resources: mem=32, time=1
+
+Submitted job 1 with external jobid '1193848'.
+Finished job 0.
+1 of 2 steps (50%) done
+Finished job 1.
+2 of 2 steps (100%) done
+Complete log: /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/.snakemake/log/2018-04-28T152158.776194.snakemake.log

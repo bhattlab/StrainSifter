@@ -1,0 +1,2 @@
+SyntaxError in line 125 of /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile:
+EOF in multi-line statement (Snakefile, line 125)

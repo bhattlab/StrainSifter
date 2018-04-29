@@ -1,0 +1,30 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 16
+Rules claiming more threads will be scaled down.
+Unlimited resources: time, mem
+Job counts:
+	count	jobs
+	1	bwa_align
+	1
+
+rule bwa_align:
+    input: /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.amb, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.ann, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.bwt, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.pac, /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta.sa, input_samples/S100.fq
+    output: filtered_bam/S100.filtered.bam
+    jobid: 0
+    wildcards: sample=S100
+    threads: 8
+    resources: mem=32, time=6
+
+Error in rule bwa_align:
+    jobid: 0
+    output: filtered_bam/S100.filtered.bam
+
+RuleException:
+CalledProcessError in line 44 of /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile:
+Command ' set -euo pipefail;  bwa mem -t 8 /home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta input_samples/S100.fq | samtools view -b -q 60 | bamtools filter -tag 'NM:<2' | samtools sort --threads 8 -o filtered_bam/S100.filtered.bam ' returned non-zero exit status 127.
+  File "/srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile", line 44, in __rule_bwa_align
+  File "/home/tamburin/tools/miniconda3/lib/python3.6/concurrent/futures/thread.py", line 55, in run
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/.snakemake/log/2018-04-28T140842.113703.snakemake.log

@@ -1,0 +1,20 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Unlimited resources: mem, time
+Job counts:
+	count	jobs
+	1	call_snps
+	1
+
+rule call_snps:
+    input: pileup/B09.pileup
+    output: snp_calls/B09.tsv
+    jobid: 0
+    wildcards: sample=B09
+    resources: mem=32, time=2
+
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/.snakemake/log/2018-04-28T181104.643202.snakemake.log
