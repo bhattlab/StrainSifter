@@ -6,25 +6,27 @@
 
 import sys
 
-minCvg = int(sys.argv[1])
-sample = sys.argv[2]
+sample_file = snakemake.input[0]
+out_file = snakemake.output[0]
+
+minCvg = int(snakemake.params[0])
 
 totalBases = 0
 coveredBases = 0
 weightedAvg = 0
+with open(sample_file, 'r') as sample:
+    for line in sample:
+        if line.startswith("genome"):
+            chr, depth, numBases, size, fraction = line.rstrip('\n').split('\t')
 
-for line in sys.stdin:
-    if line.startswith("genome"):
-        chr, depth, numBases, size, fraction = line.rstrip('\n').split('\t')
+            depth = int(depth)
+            numBases = int(numBases)
 
-        depth = int(depth)
-        numBases = int(numBases)
+            totalBases += numBases
+            weightedAvg += depth * numBases
 
-        totalBases += numBases
-        weightedAvg += depth * numBases
-
-        if depth >= minCvg:
-            coveredBases += numBases
+            if depth >= minCvg:
+                coveredBases += numBases
 avgCvg = 0
 percCovered = 0
 
@@ -35,5 +37,5 @@ if totalBases > 0:
 #print("Total bases" + "\t" + str(totalBases))
 #print("Average coverage:" + "\t" + str(round(avgCgv, 2)))
 #print("% bases with at least " + str(minCvg) + "X coverage:" + "\t" + str(round(percCovered, 2)))
-
-print("\t".join([sample, str(round(avgCvg, 2)), str(round(percCovered, 2))]))
+with open(out_file, 'w') as out:
+    print("\t".join([str(round(avgCvg, 2)), str(round(percCovered, 2))]), file = out)

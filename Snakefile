@@ -1,6 +1,6 @@
 import os
 
-configfile: "strainsifter/config.yaml"
+# configfile: "strainsifter/config.yaml"
 
 # read list of samples
 samples = []
@@ -24,7 +24,7 @@ rule bwa_align:
 	input:
 		ref = config['reference'],
 		ref_index = rules.bwa_index.output,
-		reads = "input_samples/{sample}.fq",
+		reads = config['input_dir'] + "/{sample}.fq"
 		# r2 = "input_samples/{sample}_PE2.fq"
 	output:
 		"filtered_bam/{sample}.filtered.bam"
@@ -35,10 +35,21 @@ rule bwa_align:
 	shell:
 		"bwa mem -t {threads} {input.ref} {input.reads} | samtools view -b -q 60 | bamtools filter -tag 'NM:<2' | samtools sort --threads {threads} -o {output}"
 
+rule genomecov:
+	input:
+		rules.bwa_align.output
+	output:
+		"genomecov/{sample}.tsv"
+	resources:
+		mem=16,
+		time=1,
+	threads: 1
+	shell:
+		"bedtools genomecov -ibam {input} > {output}"
+
 rule calc_coverage:
 	input:
-		"filtered_bam/{sample}.filtered.bam"
-		# expand("filtered_bam/{sample}.{organism}.filtered.bam", sample = samples, organism = organisms)
+		rules.genomecov.output
 	output:
 		"coverage/{sample}.cvg"
 	resources:
@@ -47,8 +58,8 @@ rule calc_coverage:
 	threads: 1
 	params:
 		cvg=5
-	shell:
-		"bedtools genomecov -ibam {input} | python3 scripts/getCoverage.py {params.cvg} {input} > {output}"
+	script:
+		"scripts/getCoverage.py"
 
 rule filter_samples:
 	input:
@@ -65,7 +76,7 @@ rule filter_samples:
 		min_cvg=5,
 		min_perc=0.5
 	shell:
-		"if ($(cat {input} | awk '{{if ($2 >= {params.min_cvg} && $3 >= {params.min_perc}) print \"true\"; else print \"false\"}}') == true);"\
+		"if ($(cat {input} | awk '{{if ($1 >= {params.min_cvg} && $2 >= {params.min_perc}) print \"true\"; else print \"false\"}}') == true);"\
 		"then ln -s $PWD/filtered_bam/{wildcards.sample}.filtered.bam {output}"\
 		" && touch -h {output};"\
 		"else touch {output}; fi"
