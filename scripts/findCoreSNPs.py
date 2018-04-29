@@ -2,19 +2,15 @@
 
 import sys
 
-#genotype_file = sys.argv[1]
+snp_file = snakemake.input[0]
+out_file = snakemake.output[0]
 
-# counter = 0
+# read each line and print if base is called for every sample and
+# bases are not the same in every sample
+with open(snp_file, "r") as snps:
+    with open(out_file, "w") as out:
+        for line in snps:
+            positions = line.rstrip('\n').split('\t')
 
-#with open(genotype_file) as genotypes:
-#    for line in genotypes:
-for line in sys.stdin:
-    positions = line.rstrip('\n').split('\t')
-
-    # if position is undefined for any sample or if the positions are the same in every file
-    if (len(set(positions)) > 1) and ("N" not in positions):
-        print("\t".join(positions))
-#        if "N" not in positions:
-#            counter +=1
-
-#print(counter)
+            if (len(set(positions)) > 1) and ("N" not in positions):
+                print("\t".join(positions), file = out)

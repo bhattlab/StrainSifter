@@ -1,6 +1,6 @@
 import os
 
-configfile: "config.yaml"
+configfile: "strainsifter/config.yaml"
 
 # read list of samples
 samples = []
@@ -120,20 +120,30 @@ rule snp_consensus:
 	shell:
 		"(echo {wildcards.sample}; cut -f4 {input}) > {output}"
 
-rule core_snps:
+rule combine:
 	input:
 		lambda wildcards: expand("consensus/{sample}.txt", sample=samples)
-	output: "core_snps/all.tsv"
+	output: "all.tsv"
+	resources:
+		mem=2,
+		time=1
+	threads: 1
+	shell:
+		"paste $(find consensus/*.txt -size +1) > {output}"
+
+rule core_snps:
+	input: rules.combine.output
+	output: "core_snps.tsv"
 	resources:
 		mem=16,
 		time=1
 	threads: 1
-	shell:
-		"paste $(find consensus/*.txt -size +1) | python3 snv_wf/scripts/findCoreSNPs.py > {output}"
+	script:
+		"scripts/findCoreSNPs.py"
 
 rule core_snps_to_fasta:
 	input: rules.core_snps.output
-	output: "fasta/all.fasta"
+	output: "core_snps.fasta"
 	resources:
 		mem=16,
 		time=1
@@ -143,7 +153,7 @@ rule core_snps_to_fasta:
 
 rule multi_align:
 	input: rules.core_snps_to_fasta.output
-	output: "afa/all.afa"
+	output: "core_snps.afa"
 	resources:
 		mem=200,
 		time=12
@@ -153,7 +163,7 @@ rule multi_align:
 
 rule build_tree:
 	input: rules.multi_align.output
-	output: "tree/all.tree"
+	output: "core_snps.tree"
 	resources:
 		mem=16,
 		time=1
@@ -165,7 +175,7 @@ rule plot_tree:
 	input:
 		rules.build_tree.output,
 		"/home/tamburin/fiona/bacteremia/bacteremia_metadata_all.csv",
-	output: "tree_plot/all.tree.pdf"
+	output: "core_snps.tree.pdf"
 	resources:
 		mem=8,
 		time=1
@@ -174,8 +184,8 @@ rule plot_tree:
 		"scripts/renderTree.R"
 
 rule pairwise_snvs:
-	input: lambda wildcards: expand("consensus/{sample}.filtered.tmp", sample=samples)
-	output: "snv_distances/all.snps.tsv"
+	input: lambda wildcards: expand("consensus/{sample}.txt", sample=samples)
+	output: "core_snps.dist.tsv"
 	resources:
 		mem=8,
 		time=1
