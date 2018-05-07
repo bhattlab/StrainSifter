@@ -1,3 +1,0 @@
-KeyError in line 6 of /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile:
-'input_reads'
-  File "/srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile", line 6, in <module>

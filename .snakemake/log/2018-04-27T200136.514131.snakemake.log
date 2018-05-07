@@ -1,3 +1,0 @@
-KeyError in line 19 of /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile:
-'reference'
-  File "/srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile", line 19, in <module>

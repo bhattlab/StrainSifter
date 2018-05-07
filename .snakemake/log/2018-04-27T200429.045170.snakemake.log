@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 31 of /srv/gsfs0/projects/bhatt/fiona/bacteremia/strainsifter/Snakefile:
-Missing input files for rule bwa_align:
-input_samples/S82_PE1.fq
-input_samples/S82_PE2.fq
