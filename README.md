@@ -6,7 +6,7 @@ StrainSifter is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/
 
 ## Installation
 
-(One time only)
+# (One time only)
 Download and install [miniconda3](https://conda.io/miniconda.html):
 
 For Linux:
@@ -23,7 +23,7 @@ Create the new conda environment:
     cd strainsifter
     conda env create -f envs/environment.yaml
 
-(Every time you use StrainSifter)
+# (Every time you use StrainSifter)
 Activate the environment:
 
     source activate ssift
