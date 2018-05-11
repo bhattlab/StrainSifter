@@ -10,18 +10,22 @@ StrainSifter is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/
 1. Download and install [miniconda3](https://conda.io/miniconda.html):
 
     For Linux:
+    
         wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
         bash Miniconda3-latest-Linux-x86_64.sh
 
 2. Clone the StrainSifter workflow to the directory where you wish to run the pipeline:
+
         git clone https://github.com/bhattlab/strainsifter
 
 3. Create the new conda environment:
+
         cd strainsifter
         conda env create -f envs/environment.yaml
 
 #### (Every time you use StrainSifter)
 Activate the environment:
+
     source activate ssift
     
 ### Dependencies
