@@ -1,11 +1,12 @@
 # StrainSifter
 
-A straightforward bioinformatic pipeline for detecting the presence of a bacterial strain in two or more metagenome(s).
+A straightforward bioinformatic pipeline for detecting the presence of a bacterial strain in one or more metagenome(s).
 
 StrainSifter is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/). This pipeline allows you to output phylogenetic trees showing strain relatedness of input strains, as well as pairwise counts of single-nucleotide variants (SNVs) between input samples.
 
 ## Installation
 
+(One time only)
 Download and install [miniconda3](https://conda.io/miniconda.html):
 
 For Linux:
@@ -16,16 +17,27 @@ For Linux:
 Clone the StrainSifter workflow to the directory where you wish to run the pipeline:
 
     git clone https://github.com/bhattlab/strainsifter
+
+Create the new conda environment:
+
+    cd strainsifter
+    conda env create -f envs/environment.yaml
+
+(Every time you use StrainSifter)
+Activate the environment:
+
+    source activate ssift
     
 ### Dependencies
 
-The following tools must be installed and in your system PATH to run StrainSifter:
+If you wish to run StrainSifter without using the conda environgment, the following tools must be installed and in your system PATH:
 * [Burrows-Wheeler Aligner (BWA)](http://bio-bwa.sourceforge.net)
 * [Samtools](http://www.htslib.org)
 * [Bamtools](https://github.com/pezmaster31/bamtools)
 * [Bedtools](http://bedtools.readthedocs.io/en/latest/)
 * [MUSCLE](https://www.drive5.com/muscle/)
 * [FastTree](http://www.microbesonline.org/fasttree/)
+* [Python3](https://www.python.org/downloads/)
 * [R](https://www.r-project.org)
 
 ## Usage

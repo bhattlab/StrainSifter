@@ -1,0 +1,12 @@
+name: ssift
+channels:
+  - bioconda
+  - defaults
+  - conda-forge
+dependencies:
+  - bwa
+  - samtools
+  - bamtools
+  - bedtools
+  - MUSCLE
+  - FastTree
