@@ -49,11 +49,21 @@ If you wish to run StrainSifter without using the conda environgment, the follow
 
 ### Config file
 
-You must update the config.yaml file to include the filepaths to your reference genome assembly, a list of samples, and the directory containing the input samples.
+You must update the config.yaml file as follows:
 
-    reference: "/path/to/reference.fasta"
-    samples: "samples.list"
-    input_dir: "/path/to/input_samples"
+*reference:* Path to reference genome (fasta format)
+*samples:* List of input samples (fastq or fastq.gz format)
+*reads_dir:* Directory containing the input samples
+*paired_end:* Y for yes; N for no
+*min_cvg:* Minimum coverage for calling a base
+
+Example:
+
+    reference: /home/tamburin/fiona/crassphage/strainsifter/ref/B_uniformis.fna
+    samples: /home/tamburin/fiona/crassphage/all_samples.list
+    reads_dir: /home/tamburin/fiona/crassphage/readlinks
+    paired_end: Y
+    min_cvg: 10
 
 ### Running StrainSifter
 
