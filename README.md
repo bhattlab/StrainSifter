@@ -59,9 +59,9 @@ You must update the config.yaml file as follows:
 
 Example:
 
-    reference: /home/tamburin/fiona/crassphage/strainsifter/ref/B_uniformis.fna
-    samples: /home/tamburin/fiona/crassphage/all_samples.list
-    reads_dir: /home/tamburin/fiona/crassphage/readlinks
+    reference: /path/to/ref.fna
+    samples: /path/to/samples.list
+    reads_dir: /path/to/reads
     paired_end: Y
     min_cvg: 10
 
