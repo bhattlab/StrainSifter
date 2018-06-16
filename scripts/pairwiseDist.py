@@ -9,13 +9,15 @@ import re
 in_files = snakemake.input
 out_file = snakemake.output[0]
 
+print("check1")
 cmd = " ".join(["cat", in_files[0], "| wc -l"])
 totalBases = subprocess.check_output(cmd, stdin=subprocess.PIPE, shell=True ).decode('ascii').rstrip('\n')
 totalBases = int(totalBases) - 1
-
+print("check2")
 # for every pairwise combination of files, check SNV distance
 with open(out_file, "w") as sys.stdout:
     for element in itertools.combinations(in_files, 2):
+        print("check3")
         file1, file2 = element
 
         cmd1 = " ".join(["paste", file1, file2, "| sed '1d' | grep -v N | wc -l"])
@@ -28,8 +30,8 @@ with open(out_file, "w") as sys.stdout:
         # cmd3 = " ".join(["wc -l", file1])
         # totalBases = subprocess.check_output(cmd3, stdin=subprocess.PIPE, shell=True ).decode('ascii').rstrip('\n')
 
-        fname1 = re.findall('consensus/([A-Z]\d+)\.', file1)[0]
-        fname2 = re.findall('consensus/([A-Z]\d+)\.', file2)[0]
+        fname1 = re.findall('consensus/(.+)\.', file1)[0]
+        fname2 = re.findall('consensus/(.+)\.', file2)[0]
 
         # dist = subprocess.check_output(['./count_snvs.sh', file1, file2]).decode('ascii').rstrip('\n')
         print('\t'.join([fname1, fname2, str(diffPos), str(totalPos), str(totalBases)]))

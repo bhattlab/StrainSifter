@@ -1,6 +1,8 @@
 import os
-
+import re
 # configfile: "strainsifter/config.yaml"
+
+localrules: do_filter
 
 # read list of samples
 samples = []
@@ -8,6 +10,24 @@ with open(config['samples']) as samples_list:
 	for line in samples_list:
 		sample = line.rstrip('\n')
 		samples += [sample]
+
+passed_samples = []
+try:
+	f = open("passed_samples.list")
+	for line in f:
+		sample = line.rstrip('\n')
+		passed_samples += [sample]
+except (IOError, OSError) as e:
+	print("File {f} not yet created".format(f="passed_samples.list"))
+else:
+	f.close()
+
+refname = re.split("/|\.", config['reference'])[-2]
+
+if config['paired_end'] == "Y":
+	reads = expand("{reads}/{{sample}}_{pe}.fq.gz", pe=["1", "2"], reads=config['reads_dir'])
+else:
+	reads = "{reads}.fq".format(reads=config['reads_dir'])
 
 rule bwa_index:
 	input: config['reference']
@@ -24,16 +44,19 @@ rule bwa_align:
 	input:
 		ref = config['reference'],
 		ref_index = rules.bwa_index.output,
-		reads = config['input_dir'] + "/{sample}.fq"
-		# r2 = "input_samples/{sample}_PE2.fq"
+		r = reads
 	output:
 		"filtered_bam/{sample}.filtered.bam"
 	resources:
 		mem=32,
 		time=6
 	threads: 8
+	params:
+		qual=40
 	shell:
-		"bwa mem -t {threads} {input.ref} {input.reads} | samtools view -b -q 60 | bamtools filter -tag 'NM:<2' | samtools sort --threads {threads} -o {output}"
+		"bwa mem -t {threads} {input.ref} {input.r} | "\
+		"samtools view -b -q {params.qual} | bamtools filter -tag 'NM:<6' | "\
+		"samtools sort --threads {threads} -o {output}"
 
 rule genomecov:
 	input:
@@ -62,24 +85,35 @@ rule calc_coverage:
 		"scripts/getCoverage.py"
 
 rule filter_samples:
-	input:
-		rules.calc_coverage.output
-		# expand("calc_coverage/{sample}.{organism}.list", sample = samples, organism = organisms)
-	output:
-		"passed_samples/{sample}.bam"
-		# dynamic("passed_samples/{sample}.{organism}.passed")
+	input: expand("coverage/{sample}.cvg", sample = samples)
+	output: dynamic("passed_samples/{sample}.bam")
+		# "passed_samples/{sample}.bam"
 	resources:
 		mem=1,
 		time=1
 	threads: 1
 	params:
-		min_cvg=5,
+		min_cvg=config['min_cvg'],
 		min_perc=0.5
+	run:
+		samps = os.listdir("coverage")
+		for samp in samps:
+			with open("coverage/" + samp) as s:
+				cvg, perc = s.readline().rstrip('\n').split('\t')
+			if (float(cvg) >= params.min_cvg and float(perc) > params.min_perc):
+				# passed = "passed_samples/" + samp.rstrip(".cvg") + ".bam"
+				shell("ln -s $PWD/filtered_bam/{p}.filtered.bam passed_samples/{p}.bam; "\
+				"echo {p} >> passed_samples.list".format(p=samp.rstrip(".cvg")))
+	# shell:
+	# 	"if ($(cat {input} | awk '{{if ($1 >= {params.min_cvg} && $2 >= {params.min_perc}) print \"true\"; else print \"false\"}}') == true);"\
+	# 	"then ln -s $PWD/filtered_bam/{wildcards.sample}.filtered.bam {output}"\
+	# 	" && touch -h {output}"\
+		# "else touch {output}; fi"
+rule do_filter:
+	input: rules.filter_samples.output
+	output: "filtered"
 	shell:
-		"if ($(cat {input} | awk '{{if ($1 >= {params.min_cvg} && $2 >= {params.min_perc}) print \"true\"; else print \"false\"}}') == true);"\
-		"then ln -s $PWD/filtered_bam/{wildcards.sample}.filtered.bam {output}"\
-		" && touch -h {output};"\
-		"else touch {output}; fi"
+		"touch {output}"
 
 rule faidx:
 	input: config['reference']
@@ -92,7 +126,7 @@ rule faidx:
 
 rule pileup:
 	input:
-		bam=rules.filter_samples.output,
+		bam="passed_samples/{sample}.bam",
 		ref=config['reference'],
 		index=rules.faidx.output
 	output: "pileup/{sample}.pileup"
@@ -133,18 +167,19 @@ rule snp_consensus:
 
 rule combine:
 	input:
-		lambda wildcards: expand("consensus/{sample}.txt", sample=samples)
-	output: "all.tsv"
+		samps=expand("consensus/{sample}.txt", sample = passed_samples),
+		filt=rules.filter_samples.output
+	output: "{ref}.cns.tsv".format(ref=refname)
 	resources:
 		mem=2,
 		time=1
 	threads: 1
 	shell:
-		"paste $(find consensus/*.txt -size +1) > {output}"
+		"paste {input.samps} > {output}"
 
 rule core_snps:
 	input: rules.combine.output
-	output: "core_snps.tsv"
+	output: "{ref}.tsv".format(ref=refname)
 	resources:
 		mem=16,
 		time=1
@@ -154,7 +189,7 @@ rule core_snps:
 
 rule core_snps_to_fasta:
 	input: rules.core_snps.output
-	output: "core_snps.fasta"
+	output: "{ref}.fasta".format(ref=refname)
 	resources:
 		mem=16,
 		time=1
@@ -164,7 +199,7 @@ rule core_snps_to_fasta:
 
 rule multi_align:
 	input: rules.core_snps_to_fasta.output
-	output: "core_snps.afa"
+	output: "{ref}.afa".format(ref=refname)
 	resources:
 		mem=200,
 		time=12
@@ -174,7 +209,7 @@ rule multi_align:
 
 rule build_tree:
 	input: rules.multi_align.output
-	output: "core_snps.tree"
+	output: "{ref}.tree".format(ref=refname)
 	resources:
 		mem=16,
 		time=1
@@ -186,7 +221,7 @@ rule plot_tree:
 	input:
 		rules.build_tree.output,
 		"/home/tamburin/fiona/bacteremia/bacteremia_metadata_all.csv",
-	output: "core_snps.tree.pdf"
+	output: "{ref}.tree.pdf".format(ref=refname)
 	resources:
 		mem=8,
 		time=1
@@ -195,8 +230,8 @@ rule plot_tree:
 		"scripts/renderTree.R"
 
 rule pairwise_snvs:
-	input: lambda wildcards: expand("consensus/{sample}.txt", sample=samples)
-	output: "core_snps.dist.tsv"
+	input: expand("consensus/{sample}.txt", sample = passed_samples)
+	output: "{ref}.dist.tsv".format(ref=refname)
 	resources:
 		mem=8,
 		time=1
