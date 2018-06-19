@@ -11,3 +11,6 @@ dependencies:
   - bedtools
   - MUSCLE
   - FastTree
+  - r-ggplot2
+  - bioconductor-ggtree
+  - r-phangorn

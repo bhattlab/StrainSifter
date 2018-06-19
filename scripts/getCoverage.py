@@ -6,9 +6,12 @@
 
 import sys
 
+# snakemake input and output files
 sample_file = snakemake.input[0]
 out_file = snakemake.output[0]
 
+# minimum coverage threshold -- report percentage of bases covered at or
+# beyond this depth
 minCvg = int(snakemake.params[0])
 
 totalBases = 0
@@ -34,8 +37,5 @@ if totalBases > 0:
     avgCvg = float(weightedAvg) / float(totalBases)
     percCovered = float(coveredBases) / float(totalBases)
 
-#print("Total bases" + "\t" + str(totalBases))
-#print("Average coverage:" + "\t" + str(round(avgCgv, 2)))
-#print("% bases with at least " + str(minCvg) + "X coverage:" + "\t" + str(round(percCovered, 2)))
 with open(out_file, 'w') as out:
     print("\t".join([str(round(avgCvg, 2)), str(round(percCovered, 2))]), file = out)

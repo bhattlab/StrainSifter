@@ -1,16 +1,21 @@
 import os
 import re
-# configfile: "strainsifter/config.yaml"
+from snakemake.utils import min_version
 
-localrules: do_filter
+##### set minimum snakemake version #####
+min_version("5.1.4")
 
-# read list of samples
+##### load config file and sample list #####
+configfile: "config.yaml"
+
+##### read list of input samples #####
 samples = []
 with open(config['samples']) as samples_list:
 	for line in samples_list:
 		sample = line.rstrip('\n')
 		samples += [sample]
 
+##### list of samples that meet coverage criteria -- initially empty #####
 passed_samples = []
 try:
 	f = open("passed_samples.list")
@@ -18,16 +23,24 @@ try:
 		sample = line.rstrip('\n')
 		passed_samples += [sample]
 except (IOError, OSError) as e:
-	print("File {f} not yet created".format(f="passed_samples.list"))
+	print("Samples meeting {cvg}X coverage not yet determined".format(cvg=config['min_cvg']))
 else:
 	f.close()
 
-refname = re.split("/|\.", config['reference'])[-2]
-
-if config['paired_end'] == "Y":
-	reads = expand("{reads}/{{sample}}_{pe}.fq.gz", pe=["1", "2"], reads=config['reads_dir'])
+##### prefix for phylogenetic tree and SNV distance files #####
+if config['prefix'] is None:
+	prefix = re.split("/|\.", config['reference'])[-2]
 else:
-	reads = "{reads}.fq".format(reads=config['reads_dir'])
+	prefix = config['prefix']
+
+##### handle paired-end vs. single-end files #####
+if 'reads2' in config and not config['reads2'] is None:
+	reads = [config['reads1'], config['reads2']]
+else:
+	reads = [config['reads1']]
+
+##### rules #####
+# localrules: do_filter
 
 rule bwa_index:
 	input: config['reference']
@@ -44,7 +57,7 @@ rule bwa_align:
 	input:
 		ref = config['reference'],
 		ref_index = rules.bwa_index.output,
-		r = reads
+		r = lambda wildcards: expand(reads, sample=wildcards.sample)
 	output:
 		"filtered_bam/{sample}.filtered.bam"
 	resources:
@@ -52,10 +65,12 @@ rule bwa_align:
 		time=6
 	threads: 8
 	params:
-		qual=40
+		qual=config['mapq'],
+		nm=config['n_mismatches']
 	shell:
 		"bwa mem -t {threads} {input.ref} {input.r} | "\
-		"samtools view -b -q {params.qual} | bamtools filter -tag 'NM:<6' | "\
+		"samtools view -b -q {params.qual} | "\
+		"bamtools filter -tag 'NM:=<{params.nm}' | "\
 		"samtools sort --threads {threads} -o {output}"
 
 rule genomecov:
@@ -80,13 +95,13 @@ rule calc_coverage:
 		time=1,
 	threads: 1
 	params:
-		cvg=5
+		cvg=config['min_cvg']
 	script:
 		"scripts/getCoverage.py"
 
 rule filter_samples:
 	input: expand("coverage/{sample}.cvg", sample = samples)
-	output: dynamic("passed_samples/{sample}.bam")
+	output: "passed_samples.list"
 		# "passed_samples/{sample}.bam"
 	resources:
 		mem=1,
@@ -94,26 +109,24 @@ rule filter_samples:
 	threads: 1
 	params:
 		min_cvg=config['min_cvg'],
-		min_perc=0.5
+		min_perc=config['min_genome_percent']
 	run:
-		samps = os.listdir("coverage")
+		samps = input
+		out_file = open(output[0], "a")
 		for samp in samps:
-			with open("coverage/" + samp) as s:
+			with open(samp) as s:
 				cvg, perc = s.readline().rstrip('\n').split('\t')
 			if (float(cvg) >= params.min_cvg and float(perc) > params.min_perc):
-				# passed = "passed_samples/" + samp.rstrip(".cvg") + ".bam"
-				shell("ln -s $PWD/filtered_bam/{p}.filtered.bam passed_samples/{p}.bam; "\
-				"echo {p} >> passed_samples.list".format(p=samp.rstrip(".cvg")))
-	# shell:
-	# 	"if ($(cat {input} | awk '{{if ($1 >= {params.min_cvg} && $2 >= {params.min_perc}) print \"true\"; else print \"false\"}}') == true);"\
-	# 	"then ln -s $PWD/filtered_bam/{wildcards.sample}.filtered.bam {output}"\
-	# 	" && touch -h {output}"\
-		# "else touch {output}; fi"
-rule do_filter:
-	input: rules.filter_samples.output
-	output: "filtered"
-	shell:
-		"touch {output}"
+				# shell("ln -s $PWD/filtered_bam/{p}.filtered.bam passed_samples/{p}.bam; "\
+				# "echo {p} >> {output}".format(p=samp.rstrip(".cvg")))
+				out_file.write(os.path.basename(samp).rstrip(".cvg") + '\n')
+				# shell("echo {p} >> output".format(p=samp.rstrip(".cvg")))
+
+# rule do_filter:
+# 	input: rules.filter_samples.output
+# 	output: "filtered"
+# 	shell:
+# 		"touch {output}"
 
 rule faidx:
 	input: config['reference']
@@ -126,14 +139,15 @@ rule faidx:
 
 rule pileup:
 	input:
-		bam="passed_samples/{sample}.bam",
+		bam="filtered_bam/{sample}.filtered.bam",
+		# bam="passed_samples/{sample}.bam",
 		ref=config['reference'],
 		index=rules.faidx.output
 	output: "pileup/{sample}.pileup"
 	resources:
 		mem=32,
 		time=1
-	threads: 1
+	threads: 16
 	shell:
 		"samtools mpileup -f {input.ref} -B -aa -o {output} {input.bam}"
 
@@ -143,7 +157,7 @@ rule call_snps:
 	resources:
 		mem=32,
 		time=2
-	threads: 1
+	threads: 16
 	params:
 		min_cvg=5,
 		min_freq=0.8,
@@ -169,7 +183,7 @@ rule combine:
 	input:
 		samps=expand("consensus/{sample}.txt", sample = passed_samples),
 		filt=rules.filter_samples.output
-	output: "{ref}.cns.tsv".format(ref=refname)
+	output: "{name}.cns.tsv".format(name = prefix)
 	resources:
 		mem=2,
 		time=1
@@ -179,7 +193,7 @@ rule combine:
 
 rule core_snps:
 	input: rules.combine.output
-	output: "{ref}.tsv".format(ref=refname)
+	output: "{name}.core_snps.tsv".format(name = prefix)
 	resources:
 		mem=16,
 		time=1
@@ -189,7 +203,7 @@ rule core_snps:
 
 rule core_snps_to_fasta:
 	input: rules.core_snps.output
-	output: "{ref}.fasta".format(ref=refname)
+	output: "{name}.fasta".format(name = prefix)
 	resources:
 		mem=16,
 		time=1
@@ -199,7 +213,7 @@ rule core_snps_to_fasta:
 
 rule multi_align:
 	input: rules.core_snps_to_fasta.output
-	output: "{ref}.afa".format(ref=refname)
+	output: "{name}.afa".format(name = prefix)
 	resources:
 		mem=200,
 		time=12
@@ -209,7 +223,7 @@ rule multi_align:
 
 rule build_tree:
 	input: rules.multi_align.output
-	output: "{ref}.tree".format(ref=refname)
+	output: "{name}.tree".format(name = prefix)
 	resources:
 		mem=16,
 		time=1
@@ -218,10 +232,8 @@ rule build_tree:
 		"fasttree -nt {input} > {output}"
 
 rule plot_tree:
-	input:
-		rules.build_tree.output,
-		"/home/tamburin/fiona/bacteremia/bacteremia_metadata_all.csv",
-	output: "{ref}.tree.pdf".format(ref=refname)
+	input: rules.build_tree.output
+	output: "{name}.tree.pdf".format(name = prefix)
 	resources:
 		mem=8,
 		time=1
@@ -231,7 +243,7 @@ rule plot_tree:
 
 rule pairwise_snvs:
 	input: expand("consensus/{sample}.txt", sample = passed_samples)
-	output: "{ref}.dist.tsv".format(ref=refname)
+	output: "{name}.dist.tsv".format(name = prefix)
 	resources:
 		mem=8,
 		time=1

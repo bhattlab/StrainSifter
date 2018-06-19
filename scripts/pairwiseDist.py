@@ -14,8 +14,11 @@ cmd = " ".join(["cat", in_files[0], "| wc -l"])
 totalBases = subprocess.check_output(cmd, stdin=subprocess.PIPE, shell=True ).decode('ascii').rstrip('\n')
 totalBases = int(totalBases) - 1
 print("check2")
+
 # for every pairwise combination of files, check SNV distance
 with open(out_file, "w") as sys.stdout:
+
+    # get all pairwise combinations of input files
     for element in itertools.combinations(in_files, 2):
         print("check3")
         file1, file2 = element

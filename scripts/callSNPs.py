@@ -30,10 +30,14 @@ def parse_pileup(line):
 
     # proportion is 0 if no consensus base, top base is N by default
     parsed = {
-        "proportion": 0.0, "chromosome": chromosome,
-        "position": int(position), "reference": reference,
-        "coverage": int(coverage), "pileup": pileup,
-        "quality": quality, "top_base": "N"}
+        "proportion": 0.0,
+        "chromosome": chromosome,
+        "position": int(position),
+        "reference": reference,
+        "coverage": int(coverage),
+        "pileup": pileup,
+        "quality": quality,
+        "top_base": "N"}
 
     # if the base coverage is below the limit or above our acceptable max, call N
     if parsed["coverage"] < min_coverage:
