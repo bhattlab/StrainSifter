@@ -40,7 +40,6 @@ else:
 	reads = [config['reads1']]
 
 ##### rules #####
-# localrules: do_filter
 
 rule bwa_index:
 	input: config['reference']
@@ -121,12 +120,6 @@ rule filter_samples:
 				# "echo {p} >> {output}".format(p=samp.rstrip(".cvg")))
 				out_file.write(os.path.basename(samp).rstrip(".cvg") + '\n')
 				# shell("echo {p} >> output".format(p=samp.rstrip(".cvg")))
-
-# rule do_filter:
-# 	input: rules.filter_samples.output
-# 	output: "filtered"
-# 	shell:
-# 		"touch {output}"
 
 rule faidx:
 	input: config['reference']
