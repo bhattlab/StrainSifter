@@ -6,7 +6,9 @@ StrainSifter is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/
 
 ## Installation
 
-#### (One time only)
+To run StrainSifter, you must have miniconda3 and Snakemake installed.
+
+#### Install instructions (One time only)
 1. Download and install [miniconda3](https://conda.io/miniconda.html):
 
     For Linux:
@@ -23,14 +25,13 @@ StrainSifter is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/
         cd strainsifter
         conda env create -f envs/environment.yaml
 
-#### (Every time you use StrainSifter)
-Activate the environment:
+#### Activate the conda environment (Every time you use StrainSifter)
 
     source activate ssift
     
 ### Dependencies
 
-If you wish to run StrainSifter without using the conda environgment, the following tools must be installed and in your system PATH:
+If you wish to run StrainSifter without using the conda environment, the following tools must be installed and in your system PATH:
 * [Burrows-Wheeler Aligner (BWA)](http://bio-bwa.sourceforge.net)
 * [Samtools](http://www.htslib.org)
 * [Bamtools](https://github.com/pezmaster31/bamtools)
@@ -41,6 +42,9 @@ If you wish to run StrainSifter without using the conda environgment, the follow
 * [R](https://www.r-project.org)
 
 ## Usage
+
+Due to the computing demands of the StrainSifter pipeline, we recommend running on a computing cluster if possible.
+Instructions to enable Snakemake to schedule cluster jobs with SLURM can be found at https://github.com/bhattlab/slurm
 
 ### Input files
 

@@ -1,3 +1,3 @@
-reference: "/home/tamburin/fiona/bacteremia/1.assemble_trimmed/filtered_assemblies/B09.fasta"
-samples: "samples.list"
-input_dir: "input_samples"
+reference: reference.fasta
+samples: samples.list
+input_dir: input_samples
