@@ -69,7 +69,7 @@ rule bwa_align:
 	shell:
 		"bwa mem -t {threads} {input.ref} {input.r} | "\
 		"samtools view -b -q {params.qual} | "\
-		"bamtools filter -tag 'NM:=<{params.nm}' | "\
+		"bamtools filter -tag 'NM:<={params.nm}' | "\
 		"samtools sort --threads {threads} -o {output}"
 
 rule genomecov:
@@ -100,7 +100,8 @@ rule calc_coverage:
 
 rule filter_samples:
 	input: expand("coverage/{sample}.cvg", sample = samples)
-	output: "passed_samples.list"
+	output:
+		dynamic("passed_samples/{sample}.bam")
 		# "passed_samples/{sample}.bam"
 	resources:
 		mem=1,
@@ -111,14 +112,14 @@ rule filter_samples:
 		min_perc=config['min_genome_percent']
 	run:
 		samps = input
-		out_file = open(output[0], "a")
+		# out_file = open("passed_samples.list", "a")
 		for samp in samps:
 			with open(samp) as s:
 				cvg, perc = s.readline().rstrip('\n').split('\t')
 			if (float(cvg) >= params.min_cvg and float(perc) > params.min_perc):
-				# shell("ln -s $PWD/filtered_bam/{p}.filtered.bam passed_samples/{p}.bam; "\
-				# "echo {p} >> {output}".format(p=samp.rstrip(".cvg")))
-				out_file.write(os.path.basename(samp).rstrip(".cvg") + '\n')
+				shell("ln -s $PWD/filtered_bam/{s}.filtered.bam passed_samples/{s}.bam".format(s=os.path.basename(samp).rstrip(".cvg")))
+				# shell("ln -s $PWD/filtered_bam/{s}.filtered.bam passed_samples/{s}.bam".format(s=os.path.basename(samp).rstrip(".cvg")))
+				# out_file.write(os.path.basename(samp).rstrip(".cvg") + '\n')
 				# shell("echo {p} >> output".format(p=samp.rstrip(".cvg")))
 
 rule faidx:
@@ -132,8 +133,8 @@ rule faidx:
 
 rule pileup:
 	input:
-		bam="filtered_bam/{sample}.filtered.bam",
-		# bam="passed_samples/{sample}.bam",
+		# bam="filtered_bam/{sample}.filtered.bam",
+		bam="passed_samples/{sample}.bam",
 		ref=config['reference'],
 		index=rules.faidx.output
 	output: "pileup/{sample}.pileup"
@@ -172,17 +173,31 @@ rule snp_consensus:
 	shell:
 		"(echo {wildcards.sample}; cut -f4 {input}) > {output}"
 
+# rule all:
+#     input: dynamic("consensus/{sample}.txt")
+# 	output: "done"
+# 	shell:
+# 		"touch output"
+
+# rule all_bam:
+#     input: expand("coverage/{sample}.cvg", sample = samples)
+# 	output: "done2"
+# 	shell:
+# 		"touch output"
+
 rule combine:
 	input:
-		samps=expand("consensus/{sample}.txt", sample = passed_samples),
-		filt=rules.filter_samples.output
+		dynamic("consensus/{sample}.txt")
+		# dynamic(expand("consensus/{sample}.txt", sample = passed_samples))
+		# samps=dynamic(expand(rules.call_snps.output, sample = passed_samples)),
+		# filt=dynamic(rules.filter_samples.output)
 	output: "{name}.cns.tsv".format(name = prefix)
 	resources:
 		mem=2,
 		time=1
 	threads: 1
 	shell:
-		"paste {input.samps} > {output}"
+		"paste consensus/* > {output}"
 
 rule core_snps:
 	input: rules.combine.output

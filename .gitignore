@@ -1,4 +1,4 @@
 ._Snakefile
 ._config.yaml
 .snakemake
-tutorial
+tutorial/fastq_old
