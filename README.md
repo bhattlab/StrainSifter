@@ -49,7 +49,28 @@ Instructions to enable Snakemake to schedule cluster jobs with SLURM can be foun
 ### Input files
 
 * Reference genome assembly in fasta format (can be a draft genome or a finished reference genome)
-* Two or more short read datasets in fastq format (metagenomic reads or isolate reads)
+Acceptable file extensions: ".fasta", ".fa", ".fna"
+
+* Two or more short read datasets in fastq format (metagenomic reads or isolate reads), optionally gzipped
+Acceptable file extensions: ".fq", ".fastq", ".fq.gz", ".fastq.gz"
+
+Short read data can be paired- or single-end.
+
+For paired-end data, the config file should have 'reads1' and 'reads2' parameters that indicate the forward and reverse read files, respectively. {sample} should be used as a placeholder for the individual sample names as follows:
+
+    reads1: tutorial/fastq/{sample}_1.fq.gz
+    reads2: tutorial/fastq/{sample}_2.fq.gz
+
+For single-end or interleaved data, the config file should have only the 'reads1' parameter, and 'reads2' can be deleted or left blank:
+
+    reads1: tutorial/fastq/{sample}_1.fq.gz
+    reads2:
+    
+or
+
+    reads1: tutorial/fastq/{sample}_1.fq.gz
+
+At this time, StrainSifter does not support different file extensions for different samples -- please ensure that all samples are in the same format.
 
 ### Config file
 
@@ -61,13 +82,25 @@ You must update the config.yaml file as follows:
 *paired_end:* Y for yes; N for no
 *min_cvg:* Minimum coverage for calling a base
 
-Example:
+Example config.yaml:
 
-    reference: /path/to/ref.fna
-    samples: /path/to/samples.list
-    reads_dir: /path/to/reads
-    paired_end: Y
+    # input files
+    reference: tutorial/reference/E_coli_K12.fna
+    samples: tutorial_samples.list
+    reads1: tutorial/fastq/{sample}_1.fq.gz
+    reads2: tutorial/fastq/{sample}_2.fq.gz
+
+    # prefix for output files (can leave blank)
+    prefix: E_coli
+
+    # alignment parameters:
+    mapq: 40
+    n_mismatches: 5
+
+    # variant calling parameters:
     min_cvg: 10
+    min_genome_percent: 0.5
+    base_freq: 0.8
 
 ### Running StrainSifter
 
@@ -84,3 +117,8 @@ To generate a phylogenetic tree showing all of the input samples that contain yo
 To generate a list of pairwise SNV counts between all input samples:
 
     snakemake strain.snps.tsv --configfile config.yaml
+
+### FAQ
+
+- Can StrainSifter be used for non-bacterial genomes (e.g. yeast)?
+At present, we recommend StrainSifter for bacteria only. As yeast and other fungi can be diploid, adjustments would likely need to be made to this workflow.
