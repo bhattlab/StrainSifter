@@ -1,3 +1,17 @@
-reference: reference.fasta
-samples: samples.list
-input_dir: input_samples
+# input files
+reference: tutorial/reference/E_coli_K12.fna
+samples: tutorial_samples.list
+reads1: tutorial/fastq/{sample}_1.fq.gz
+reads2: tutorial/fastq/{sample}_2.fq.gz
+
+# prefix for output files (can leave blank)
+prefix: E_coli
+
+# alignment parameters:
+mapq: 40
+n_mismatches: 5
+
+# variant calling parameters:
+min_cvg: 10
+min_genome_percent: 0.5
+base_freq: 0.8
