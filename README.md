@@ -78,9 +78,16 @@ You must update the config.yaml file as follows:
 
 *reference:* Path to reference genome (fasta format)
 *samples:* List of input samples (fastq or fastq.gz format)
-*reads_dir:* Directory containing the input samples
-*paired_end:* Y for yes; N for no
-*min_cvg:* Minimum coverage for calling a base
+*reads1:* Directory containing forward reads OR single-end/interleaved reads, with {sample} as sample name placeholder
+*reads2:* Directory containing reverse reads (blank if data are single-end or interleaved)
+
+Optionaly, you can update the following parameters:
+*prefix:* (optional) desired filename for output files. If blank, the name of the reference genome will be used.
+*mapq:* minimum mapping quality score to evaluate a read aligment
+*n_mismatches:* consider reads with this many mismatches or fewer
+*min_cvg:* minimum read depth to determine the nucleotide at any given postion
+*min_genome_percent:* the minimum fraction of bases that must be covered at min_cvg or greater to process an sample
+*base_freq:* minimum frequency of a nucleotide to call a base at any position
 
 Example config.yaml:
 
