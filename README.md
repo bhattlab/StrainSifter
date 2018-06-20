@@ -123,7 +123,7 @@ To generate a phylogenetic tree showing all of the input samples that contain yo
 
 To generate a list of pairwise SNV counts between all input samples:
 
-    snakemake strain.snps.tsv --configfile config.yaml
+    snakemake strain.dist.tsv --configfile config.yaml
 
 ### FAQ
 
