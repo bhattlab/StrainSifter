@@ -120,5 +120,6 @@ To generate a list of pairwise SNV counts between all input samples:
 
 ### FAQ
 
-- Can StrainSifter be used for non-bacterial genomes (e.g. yeast)?
-At present, we recommend StrainSifter for bacteria only. As yeast and other fungi can be diploid, adjustments would likely need to be made to this workflow.
+Q: Can StrainSifter be used for non-bacterial genomes (e.g. yeast)?
+
+A: At present, we recommend StrainSifter for bacteria only. As yeast and other fungi can be diploid, adjustments would likely need to be made to this workflow.
