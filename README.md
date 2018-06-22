@@ -84,7 +84,7 @@ You must update the config.yaml file as follows:
 
 **reads:** Samples and the file path(s) to the input reads.
 
-
+<br>
 
 Optionally, you can update the following parameters:
 
@@ -100,6 +100,7 @@ Optionally, you can update the following parameters:
 
 **base_freq:** minimum frequency of a nucleotide to call a base at any position
 
+<br>
 
 Example config.yaml:
 
