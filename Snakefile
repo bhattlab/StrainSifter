@@ -8,24 +8,8 @@ min_version("5.1.4")
 ##### load config file and sample list #####
 configfile: "config.yaml"
 
-##### read list of input samples #####
-samples = []
-with open(config['samples']) as samples_list:
-	for line in samples_list:
-		sample = line.rstrip('\n')
-		samples += [sample]
-
-##### list of samples that meet coverage criteria -- initially empty #####
-passed_samples = []
-try:
-	f = open("passed_samples.list")
-	for line in f:
-		sample = line.rstrip('\n')
-		passed_samples += [sample]
-except (IOError, OSError) as e:
-	print("Samples meeting {cvg}X coverage not yet determined".format(cvg=config['min_cvg']))
-else:
-	f.close()
+##### list of input samples #####
+samples = [key for key in config['reads']]
 
 ##### prefix for phylogenetic tree and SNV distance files #####
 if config['prefix'] is None:
@@ -33,14 +17,7 @@ if config['prefix'] is None:
 else:
 	prefix = config['prefix']
 
-##### handle paired-end vs. single-end files #####
-if 'reads2' in config and not config['reads2'] is None:
-	reads = [config['reads1'], config['reads2']]
-else:
-	reads = [config['reads1']]
-
 ##### rules #####
-
 rule bwa_index:
 	input: config['reference']
 	output:
@@ -56,7 +33,7 @@ rule bwa_align:
 	input:
 		ref = config['reference'],
 		ref_index = rules.bwa_index.output,
-		r = lambda wildcards: expand(reads, sample=wildcards.sample)
+		r = lambda wildcards: config["reads"][wildcards.sample]
 	output:
 		"filtered_bam/{sample}.filtered.bam"
 	resources:
@@ -102,7 +79,6 @@ rule filter_samples:
 	input: expand("coverage/{sample}.cvg", sample = samples)
 	output:
 		dynamic("passed_samples/{sample}.bam")
-		# "passed_samples/{sample}.bam"
 	resources:
 		mem=1,
 		time=1
@@ -112,15 +88,11 @@ rule filter_samples:
 		min_perc=config['min_genome_percent']
 	run:
 		samps = input
-		# out_file = open("passed_samples.list", "a")
 		for samp in samps:
 			with open(samp) as s:
 				cvg, perc = s.readline().rstrip('\n').split('\t')
 			if (float(cvg) >= params.min_cvg and float(perc) > params.min_perc):
 				shell("ln -s $PWD/filtered_bam/{s}.filtered.bam passed_samples/{s}.bam".format(s=os.path.basename(samp).rstrip(".cvg")))
-				# shell("ln -s $PWD/filtered_bam/{s}.filtered.bam passed_samples/{s}.bam".format(s=os.path.basename(samp).rstrip(".cvg")))
-				# out_file.write(os.path.basename(samp).rstrip(".cvg") + '\n')
-				# shell("echo {p} >> output".format(p=samp.rstrip(".cvg")))
 
 rule faidx:
 	input: config['reference']
@@ -133,7 +105,6 @@ rule faidx:
 
 rule pileup:
 	input:
-		# bam="filtered_bam/{sample}.filtered.bam",
 		bam="passed_samples/{sample}.bam",
 		ref=config['reference'],
 		index=rules.faidx.output
@@ -173,24 +144,9 @@ rule snp_consensus:
 	shell:
 		"(echo {wildcards.sample}; cut -f4 {input}) > {output}"
 
-# rule all:
-#     input: dynamic("consensus/{sample}.txt")
-# 	output: "done"
-# 	shell:
-# 		"touch output"
-
-# rule all_bam:
-#     input: expand("coverage/{sample}.cvg", sample = samples)
-# 	output: "done2"
-# 	shell:
-# 		"touch output"
-
 rule combine:
 	input:
 		dynamic("consensus/{sample}.txt")
-		# dynamic(expand("consensus/{sample}.txt", sample = passed_samples))
-		# samps=dynamic(expand(rules.call_snps.output, sample = passed_samples)),
-		# filt=dynamic(rules.filter_samples.output)
 	output: "{name}.cns.tsv".format(name = prefix)
 	resources:
 		mem=2,
@@ -250,7 +206,7 @@ rule plot_tree:
 		"scripts/renderTree.R"
 
 rule pairwise_snvs:
-	input: expand("consensus/{sample}.txt", sample = passed_samples)
+	input: dynamic("consensus/{sample}.txt")
 	output: "{name}.dist.tsv".format(name = prefix)
 	resources:
 		mem=8,

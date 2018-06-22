@@ -1,17 +1,29 @@
-# input files
-reference: tutorial/reference/E_coli_K12.fna
-samples: tutorial_samples.list
-reads1: tutorial/fastq/{sample}_1.fq.gz
-reads2: tutorial/fastq/{sample}_2.fq.gz
+##### input files #####
 
-# prefix for output files (can leave blank)
-prefix: E_coli
+# reference genome (required)
+reference: /path/to/ref.fna
+
+# short read data (at least two samples required)
+reads:
+  sample1:
+    [/path/to/sample1_R1.fq,
+  /path/tp/sample1_R2.fq]
+  sample2:
+    [/path/to/sample2_R1.fq,
+  /path/to/sample2_R2.fq]
+  sample3: /path/to/sample3.fq
+
+# prefix for output files (optional - can leave blank)
+prefix:
+
+
+##### workflow parameters #####
 
 # alignment parameters:
-mapq: 40
+mapq: 60
 n_mismatches: 5
 
 # variant calling parameters:
-min_cvg: 10
+min_cvg: 5
 min_genome_percent: 0.5
 base_freq: 0.8

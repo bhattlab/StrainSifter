@@ -2,3 +2,4 @@
 ._config.yaml
 .snakemake
 tutorial
+config_old.yaml
