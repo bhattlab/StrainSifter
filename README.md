@@ -80,16 +80,23 @@ You will need to indicate input files in the config file for each sample you wis
 
 You must update the config.yaml file as follows:
 
-*reference:* Path to reference genome (fasta format)
-*reads:* Samples and the file path(s) to the input reads.
+**reference:** Path to reference genome (fasta format)
+
+**reads:** Samples and the file path(s) to the input reads.
 
 Optionally, you can update the following parameters:
-*prefix:* (optional) desired filename for output files. If blank, the name of the reference genome will be used.
-*mapq:* minimum mapping quality score to evaluate a read aligment
-*n_mismatches:* consider reads with this many mismatches or fewer
-*min_cvg:* minimum read depth to determine the nucleotide at any given postion
-*min_genome_percent:* the minimum fraction of bases that must be covered at min_cvg or greater to process an sample
-*base_freq:* minimum frequency of a nucleotide to call a base at any position
+
+**prefix:** (optional) desired filename for output files. If blank, the name of the reference genome will be used.
+
+**mapq:** minimum mapping quality score to evaluate a read aligment
+
+**n_mismatches:** consider reads with this many mismatches or fewer
+
+**min_cvg:** minimum read depth to determine the nucleotide at any given postion
+
+**min_genome_percent:** the minimum fraction of bases that must be covered at min_cvg or greater to process an sample
+
+**base_freq:** minimum frequency of a nucleotide to call a base at any position
 
 Example config.yaml:
 
