@@ -12,7 +12,7 @@ To run StrainSifter, you must have miniconda3 and Snakemake installed.
 1. Download and install [miniconda3](https://conda.io/miniconda.html):
 
     For Linux:
-    
+
         wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
         bash Miniconda3-latest-Linux-x86_64.sh
 
@@ -25,13 +25,31 @@ To run StrainSifter, you must have miniconda3 and Snakemake installed.
         cd strainsifter
         conda env create -f envs/environment.yaml
 
+4. Check that Snakemake is installed and up to date:
+
+  Snakemake should come packaged with miniconda3. To verify, type:
+
+    snakemake --version
+
+  If Snakemake is not installed, you will see the error:
+
+    snakemake: command not found
+
+  If Snakemake is not installed, install with:
+
+    conda install snakemake
+
+  StrainSifter requires Snakemake version 5.1.4 -- it may be necessary to update Snakemake, which you can do by typing:
+
+    conda update snakemake
+
 #### Activate the conda environment (Every time you use StrainSifter)
 
     source activate ssift
-    
+
 ### Dependencies
 
-If you wish to run StrainSifter without using the conda environment, the following tools must be installed and in your system PATH:
+We recommend running StrainSifter in the provided conda environment. If you wish to run StrainSifter without using the conda environment, the following tools must be installed and in your system PATH:
 * [Burrows-Wheeler Aligner (BWA)](http://bio-bwa.sourceforge.net)
 * [Samtools](http://www.htslib.org)
 * [Bamtools](https://github.com/pezmaster31/bamtools)
@@ -56,32 +74,16 @@ Acceptable file extensions: ".fq", ".fastq", ".fq.gz", ".fastq.gz"
 
 Short read data can be paired- or single-end.
 
-For paired-end data, the config file should have 'reads1' and 'reads2' parameters that indicate the forward and reverse read files, respectively. {sample} should be used as a placeholder for the individual sample names as follows:
+You will need to indicate input files in the config file for each sample you wish to run StrainSifter on. This is described below in the *Config* section:
 
-    reads1: tutorial/fastq/{sample}_1.fq.gz
-    reads2: tutorial/fastq/{sample}_2.fq.gz
-
-For single-end or interleaved data, the config file should have only the 'reads1' parameter, and 'reads2' can be deleted or left blank:
-
-    reads1: tutorial/fastq/{sample}_1.fq.gz
-    reads2:
-    
-or
-
-    reads1: tutorial/fastq/{sample}_1.fq.gz
-
-At this time, StrainSifter does not support different file extensions for different samples -- please ensure that all samples are in the same format.
-
-### Config file
+### Config
 
 You must update the config.yaml file as follows:
 
 *reference:* Path to reference genome (fasta format)
-*samples:* List of input samples (fastq or fastq.gz format)
-*reads1:* Directory containing forward reads OR single-end/interleaved reads, with {sample} as sample name placeholder
-*reads2:* Directory containing reverse reads (blank if data are single-end or interleaved)
+*reads:* Samples and the file path(s) to the input reads.
 
-Optionaly, you can update the following parameters:
+Optionally, you can update the following parameters:
 *prefix:* (optional) desired filename for output files. If blank, the name of the reference genome will be used.
 *mapq:* minimum mapping quality score to evaluate a read aligment
 *n_mismatches:* consider reads with this many mismatches or fewer
@@ -91,39 +93,53 @@ Optionaly, you can update the following parameters:
 
 Example config.yaml:
 
-    # input files
-    reference: tutorial/reference/E_coli_K12.fna
-    samples: tutorial_samples.list
-    reads1: tutorial/fastq/{sample}_1.fq.gz
-    reads2: tutorial/fastq/{sample}_2.fq.gz
+    ##### input files #####
 
-    # prefix for output files (can leave blank)
-    prefix: E_coli
+    # reference genome (required)
+    reference: /path/to/ref.fna
+
+    # short read data (at least two samples required)
+    reads:
+    sample1:
+    [/path/to/sample1_R1.fq,
+    /path/tp/sample1_R2.fq]
+    sample2:
+    [/path/to/sample2_R1.fq,
+    /path/to/sample2_R2.fq]
+    sample3: /path/to/sample3.fq
+
+    # prefix for output files (optional - can leave blank)
+    prefix:
+
+
+    ##### workflow parameters #####
 
     # alignment parameters:
-    mapq: 40
+    mapq: 60
     n_mismatches: 5
 
     # variant calling parameters:
-    min_cvg: 10
+    min_cvg: 5
     min_genome_percent: 0.5
     base_freq: 0.8
 
+
 ### Running StrainSifter
 
+To run StrainSifter, the config file must be present in the directory in which you wish to run the workflow.
 You should then be able to run StrainSifter as follows:
 
 #### Phylogeny
 
 To generate a phylogenetic tree showing all of the input samples that contain your strain of interest at sufficient coverage to profile:
 
-    snakemake strain.tree.pdf --configfile config.yaml
+    snakemake {prefix}.tree.pdf
 
 #### SNV counts
 
 To generate a list of pairwise SNV counts between all input samples:
 
-    snakemake strain.dist.tsv --configfile config.yaml
+    snakemake {prefix}.dist.tsv
 
 ### FAQ
 
