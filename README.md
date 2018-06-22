@@ -84,6 +84,7 @@ You must update the config.yaml file as follows:
 
 **reads:** Samples and the file path(s) to the input reads.
 
+
 Optionally, you can update the following parameters:
 
 **prefix:** (optional) desired filename for output files. If blank, the name of the reference genome will be used.
@@ -97,6 +98,7 @@ Optionally, you can update the following parameters:
 **min_genome_percent:** the minimum fraction of bases that must be covered at min_cvg or greater to process an sample
 
 **base_freq:** minimum frequency of a nucleotide to call a base at any position
+
 
 Example config.yaml:
 
