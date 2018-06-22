@@ -85,6 +85,7 @@ You must update the config.yaml file as follows:
 **reads:** Samples and the file path(s) to the input reads.
 
 
+
 Optionally, you can update the following parameters:
 
 **prefix:** (optional) desired filename for output files. If blank, the name of the reference genome will be used.
