@@ -53,7 +53,7 @@ We recommend running StrainSifter in the provided conda environment. If you wish
 * [Python3](https://www.python.org/downloads/)
 * [R](https://www.r-project.org)
 
-## Usage
+## Running StrainSifter
 
 Due to the computing demands of the StrainSifter pipeline, we recommend running on a computing cluster if possible.
 Instructions to enable Snakemake to schedule cluster jobs with SLURM can be found at https://github.com/bhattlab/slurm
