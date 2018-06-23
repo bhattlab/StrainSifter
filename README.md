@@ -25,23 +25,17 @@ To run StrainSifter, you must have miniconda3 and Snakemake installed.
         cd strainsifter
         conda env create -f envs/environment.yaml
 
-4. Check that Snakemake is installed and up to date:
+4. Install Snakemake:
 
-  Snakemake should come packaged with miniconda3. To verify, type:
+    conda install snakemake -c bioconda -c conda-forge
+
+  StrainSifter has been developed and tested with Snakemake version 5.1.4. Check your version by typing:
 
     snakemake --version
 
-  If Snakemake is not installed, you will see the error:
+  If you are running an earlier version of Snakemake, update to the latest version:
 
-    snakemake: command not found
-
-  If Snakemake is not installed, install with:
-
-    conda install snakemake
-
-  StrainSifter requires Snakemake version 5.1.4 -- it may be necessary to update Snakemake, which you can do by typing:
-
-    conda update snakemake
+    conda update snakemake -c bioconda -c conda-forge
 
 #### Activate the conda environment (Every time you use StrainSifter)
 
@@ -156,4 +150,4 @@ To generate a list of pairwise SNV counts between all input samples:
 
 Q: Can StrainSifter be used for non-bacterial genomes (e.g. yeast)?
 
-A: At present, we recommend StrainSifter for bacteria only. As yeast and other fungi can be diploid, adjustments would likely need to be made to this workflow.
+A: At present, we recommend StrainSifter for bacteria only. In theory, StrainSifter should work for yeast if a haploid reference genome is provided.

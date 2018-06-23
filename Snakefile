@@ -31,7 +31,6 @@ rule bwa_index:
 
 rule bwa_align:
 	input:
-		ref = config['reference'],
 		ref_index = rules.bwa_index.output,
 		r = lambda wildcards: config["reads"][wildcards.sample]
 	output:
@@ -41,10 +40,11 @@ rule bwa_align:
 		time=6
 	threads: 8
 	params:
+		ref = config['reference'],
 		qual=config['mapq'],
 		nm=config['n_mismatches']
 	shell:
-		"bwa mem -t {threads} {input.ref} {input.r} | "\
+		"bwa mem -t {threads} {params.ref} {input.r} | "\
 		"samtools view -b -q {params.qual} | "\
 		"bamtools filter -tag 'NM:<={params.nm}' | "\
 		"samtools sort --threads {threads} -o {output}"
@@ -137,12 +137,8 @@ rule snp_consensus:
 		mem=32,
 		time=2
 	threads: 1
-	params:
-		min_cvg=5,
-		min_freq=0.8,
-		min_phred=20
 	shell:
-		"(echo {wildcards.sample}; cut -f4 {input}) > {output}"
+		"echo {wildcards.sample} > {output}; cut -f4 {input} >> {output}"
 
 rule combine:
 	input:
@@ -153,7 +149,7 @@ rule combine:
 		time=1
 	threads: 1
 	shell:
-		"paste consensus/* > {output}"
+		"paste {input} > {output}"
 
 rule core_snps:
 	input: rules.combine.output
