@@ -18,6 +18,8 @@ else:
 	prefix = config['prefix']
 
 ##### rules #####
+
+# index reference genome for bwa alignment
 rule bwa_index:
 	input: config['reference']
 	output:
@@ -29,6 +31,7 @@ rule bwa_index:
 	shell:
 		"bwa index {input}"
 
+# align reads to reference genome with bwa
 rule bwa_align:
 	input:
 		ref_index = rules.bwa_index.output,
@@ -49,6 +52,7 @@ rule bwa_align:
 		"bamtools filter -tag 'NM:<={params.nm}' | "\
 		"samtools sort --threads {threads} -o {output}"
 
+# count base read coverage
 rule genomecov:
 	input:
 		rules.bwa_align.output
@@ -61,6 +65,7 @@ rule genomecov:
 	shell:
 		"bedtools genomecov -ibam {input} > {output}"
 
+# calculate average coverage across the genome
 rule calc_coverage:
 	input:
 		rules.genomecov.output
@@ -75,6 +80,7 @@ rule calc_coverage:
 	script:
 		"scripts/getCoverage.py"
 
+# filter samples that meet coverage requirements
 rule filter_samples:
 	input: expand("coverage/{sample}.cvg", sample = samples)
 	output:
@@ -94,6 +100,7 @@ rule filter_samples:
 			if (float(cvg) >= params.min_cvg and float(perc) > params.min_perc):
 				shell("ln -s $PWD/filtered_bam/{s}.filtered.bam passed_samples/{s}.bam".format(s=os.path.basename(samp).rstrip(".cvg")))
 
+# index reference genome for pileup
 rule faidx:
 	input: config['reference']
 	output: "{ref}.fai".format(ref=config['reference'])
@@ -103,6 +110,7 @@ rule faidx:
 	shell:
 		"samtools faidx {input}"
 
+# create pileup from bam files
 rule pileup:
 	input:
 		bam="passed_samples/{sample}.bam",
@@ -116,6 +124,7 @@ rule pileup:
 	shell:
 		"samtools mpileup -f {input.ref} -B -aa -o {output} {input.bam}"
 
+# call SNPs from pileup
 rule call_snps:
 	input: rules.pileup.output
 	output: "snp_calls/{sample}.tsv"
@@ -130,6 +139,7 @@ rule call_snps:
 	script:
 		"scripts/callSNPs.py"
 
+# get consensus sequence from pileup
 rule snp_consensus:
 	input: rules.call_snps.output
 	output: "consensus/{sample}.txt"
@@ -140,6 +150,7 @@ rule snp_consensus:
 	shell:
 		"echo {wildcards.sample} > {output}; cut -f4 {input} >> {output}"
 
+# combine consensus sequences into one file
 rule combine:
 	input:
 		dynamic("consensus/{sample}.txt")
@@ -151,6 +162,8 @@ rule combine:
 	shell:
 		"paste {input} > {output}"
 
+# find positions that have a base call in each input genome and at least
+# one variant in the set of input genomes
 rule core_snps:
 	input: rules.combine.output
 	output: "{name}.core_snps.tsv".format(name = prefix)
@@ -161,6 +174,7 @@ rule core_snps:
 	script:
 		"scripts/findCoreSNPs.py"
 
+# convert core SNPs file to fasta format
 rule core_snps_to_fasta:
 	input: rules.core_snps.output
 	output: "{name}.fasta".format(name = prefix)
@@ -171,6 +185,7 @@ rule core_snps_to_fasta:
 	script:
 		"scripts/coreSNPs2fasta.py"
 
+# perform multiple sequence alignment of fasta file
 rule multi_align:
 	input: rules.core_snps_to_fasta.output
 	output: "{name}.afa".format(name = prefix)
@@ -181,6 +196,7 @@ rule multi_align:
 	shell:
 		"muscle -in {input} -out {output}"
 
+# calculate phylogenetic tree from multiple sequence alignment
 rule build_tree:
 	input: rules.multi_align.output
 	output: "{name}.tree".format(name = prefix)
@@ -191,6 +207,7 @@ rule build_tree:
 	shell:
 		"fasttree -nt {input} > {output}"
 
+# plot phylogenetic tree
 rule plot_tree:
 	input: rules.build_tree.output
 	output: "{name}.tree.pdf".format(name = prefix)
@@ -201,6 +218,7 @@ rule plot_tree:
 	script:
 		"scripts/renderTree.R"
 
+# count pairwise SNVs between input samples
 rule pairwise_snvs:
 	input: dynamic("consensus/{sample}.txt")
 	output: "{name}.dist.tsv".format(name = prefix)
